@@ -143,6 +143,32 @@ MSFT
 
 ---
 
+## ☁️ Деплой на Render
+
+### Переменные окружения (Environment Variables)
+
+| Переменная | Описание | Пример |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | Токен бота от @BotFather | `123456789:ABCdef...` |
+| `RENDER` | Включает webhook-режим | `true` |
+| `WEBHOOK_URL` | Публичный URL вашего сервиса на Render | `https://my-bot.onrender.com` |
+| `PYTHON_VERSION` | Версия Python | `3.11.9` |
+| `NEWS_API_KEY` | Ключ NewsAPI (необязательно) | `abc123...` |
+| `OPENAI_API_KEY` | Ключ OpenAI (необязательно) | `sk-...` |
+
+### Как задать на Render
+
+1. Откройте ваш сервис → **Environment**
+2. Добавьте переменные выше (минимум `TELEGRAM_BOT_TOKEN`, `RENDER=true`, `WEBHOOK_URL`)
+3. Render автоматически выставит `PORT` — бот его подхватит
+
+### Локальный запуск vs Render
+
+- **Локально** (`python run.py`) — режим polling, `RENDER`/`WEBHOOK_URL` не нужны
+- **На Render** — при наличии `RENDER=true` или `WEBHOOK_URL` включается webhook-режим, бот слушает `0.0.0.0:PORT`
+
+---
+
 ## 🧪 Запуск тестов
 
 ```bash

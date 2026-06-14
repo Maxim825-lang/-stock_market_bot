@@ -5,6 +5,8 @@ Bot setup and application entry point.
 from __future__ import annotations
 
 import logging
+import os
+import sys
 
 from telegram import BotCommand
 from telegram.ext import (
@@ -62,13 +64,39 @@ def create_app() -> Application:
     return app
 
 
+def _is_render() -> bool:
+    return os.getenv("RENDER") == "true" or bool(os.getenv("WEBHOOK_URL"))
+
+
 def run_bot() -> None:
     logging.basicConfig(
         format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
         level=logging.INFO,
     )
-    # Prevent httpx from logging full URLs that contain the bot token
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logger.info("Starting Stock Market Bot…")
+
     app = create_app()
-    app.run_polling(drop_pending_updates=True)
+
+    if _is_render():
+        webhook_url = os.getenv("WEBHOOK_URL")
+        if not webhook_url:
+            logger.error(
+                "Render-режим обнаружен (RENDER=true), но WEBHOOK_URL не задан. "
+                "Добавьте WEBHOOK_URL=https://<service>.onrender.com в переменные окружения."
+            )
+            sys.exit(1)
+
+        port = int(os.getenv("PORT", "10000"))
+        full_webhook_url = webhook_url.rstrip("/") + "/webhook"
+        logger.info("Webhook mode: listening on 0.0.0.0:%d, webhook_url=%s", port, full_webhook_url)
+
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path="webhook",
+            webhook_url=full_webhook_url,
+        )
+    else:
+        logger.info("Polling mode (local)")
+        app.run_polling(drop_pending_updates=True)
